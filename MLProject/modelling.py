@@ -1,9 +1,13 @@
 import argparse
 import pandas as pd
 import mlflow
+import os # Added for os.environ check
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
+
+if "MLFLOW_TRACKING_URI" not in os.environ:
+    mlflow.set_tracking_uri("./mlruns")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
@@ -18,7 +22,6 @@ def load_and_split_data(data, target_column, test_size=0.2, random_state=None):
 X_train, X_test, y_train, y_test = load_and_split_data(args.data_path, 'Personal Loan')
 
 mlflow.set_experiment('Bank_Personal_Loan_Experiment')
-mlflow.set_tracking_uri('http://127.0.0.1:5000')
 
 with mlflow.start_run():
     mlflow.sklearn.autolog()
@@ -27,6 +30,7 @@ with mlflow.start_run():
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+
     accuracy = accuracy_score(y_test, y_pred)
     report = classification_report(y_test, y_pred)
 
