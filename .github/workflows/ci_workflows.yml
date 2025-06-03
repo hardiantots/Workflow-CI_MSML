@@ -21,7 +21,7 @@ jobs:
       with:
         auto-activate-base: false
         activate-environment: mlflow-env
-        environment-file: conda.yaml
+        environment-file: MLProject/conda.yaml
         python-version: 3.12
 
     - name: Run MLflow Project
