@@ -1,13 +1,16 @@
 import argparse
 import pandas as pd
 import mlflow
-import os # Added for os.environ check
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
 if "MLFLOW_TRACKING_URI" not in os.environ:
     mlflow.set_tracking_uri("./mlruns")
+
+mlflow.set_experiment('Bank_Personal_Loan_Experiment')
+mlflow.sklearn.autolog()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
@@ -21,18 +24,15 @@ def load_and_split_data(data, target_column, test_size=0.2, random_state=None):
 
 X_train, X_test, y_train, y_test = load_and_split_data(args.data_path, 'Personal Loan')
 
-mlflow.set_experiment('Bank_Personal_Loan_Experiment')
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
 
-with mlflow.start_run():
-    mlflow.sklearn.autolog()
+y_pred = model.predict(X_test)
 
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+accuracy = accuracy_score(y_test, y_pred)
+report = classification_report(y_test, y_pred)
 
-    y_pred = model.predict(X_test)
+mlflow.log_metric('accuracy', accuracy)
+mlflow.log_text(report, 'classification_report.txt')
 
-    accuracy = accuracy_score(y_test, y_pred)
-    report = classification_report(y_test, y_pred)
-
-    mlflow.log_metric('accuracy', accuracy)
-    mlflow.log_text(report, 'classification_report.txt')
+print(f"MLflow Run ID for this execution: {mlflow.active_run().info.run_id}")
