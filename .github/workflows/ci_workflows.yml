@@ -46,7 +46,7 @@ jobs:
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Found MLflow Run ID: $RUN_ID"
 
-    - name: Get latest MLflow run_id # Updated name to match image
+    - name: Get latest MLflow run_id
       id: get_run
       shell: bash -l {0}
       run: |
@@ -59,7 +59,7 @@ jobs:
         # Mengambil ID run terbaru tanpa menggunakan --order-by atau --max-results
         # Ini mengasumsikan 'mlflow runs list' mengurutkan berdasarkan waktu mulai secara ascending (terlama ke terbaru)
         # dan ID run adalah kolom pertama.
-        # Menambahkan --experiment-id untuk mengatasi error "Missing option '--experiment-id'"
+        echo "MLFLOW_EXPERIMENT_ID=0" >> $GITHUB_ENV
         RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} | tail -n +2 | tail -n 1 | awk '{print $1}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Found MLflow Run ID: $RUN_ID" # Tambahkan untuk debugging
