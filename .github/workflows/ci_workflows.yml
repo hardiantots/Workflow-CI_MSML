@@ -9,9 +9,6 @@ jobs:
   train-and-deploy:
     runs-on: ubuntu-latest
 
-    # Removed MLFLOW_TRACKING_URI: http://127.0.0.1:5000
-    # MLflow will now default to local file-based tracking in './mlruns'
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
