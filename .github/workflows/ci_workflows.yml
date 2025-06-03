@@ -57,7 +57,7 @@ jobs:
         mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }}
         echo "--------------------------------------"
 
-        RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} | tail -n +2 | tail -n 1 | awk '{print $1}')
+        RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} --no-header | tail -n 1 | awk '{print $NF}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Found MLflow Run ID: $RUN_ID"
 
@@ -66,17 +66,20 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
+        echo "Menyinkronkan dengan remote repository..."
+        git pull --rebase
+        
+        echo "Menambahkan artefak baru ke staging..."
         git add mlruns
         
         if git diff --staged --quiet; then
           echo "Tidak ada artefak baru untuk di-commit."
         else
-          echo "Artefak baru ditemukan. Mempersiapkan untuk commit."
-        
-          git pull --rebase
-          
+          echo "Membuat commit untuk artefak baru..."
+          # Pesan commit berisi [skip ci] untuk mencegah infinite loop
           git commit -m "ci: Upload MLflow artifacts for Run ID ${{ env.RUN_ID }} [skip ci]"
           
+          echo "Mendorong artefak ke repository..."
           git push
         fi
 
