@@ -39,13 +39,22 @@ jobs:
       run: |
         mlflow run MLProject --env-manager local -P data_path=Bank_Personal_Loan_preprocessing.csv
 
-    - name: Get latest MLflow run_id
+    - name: Get latest MLflow run_id # Updated name to match image
       id: get_run
       shell: bash -l {0}
       run: |
+        # --- Start Debugging Step for mlflow runs list ---
+        echo "--- Raw output of mlflow runs list ---"
+        mlflow runs list
+        echo "--------------------------------------"
+        # --- End Debugging Step ---
+
+        # Mengambil ID run terbaru tanpa menggunakan --order-by atau --max-results
+        # Ini mengasumsikan 'mlflow runs list' mengurutkan berdasarkan waktu mulai secara ascending (terlama ke terbaru)
+        # dan ID run adalah kolom pertama.
         RUN_ID=$(mlflow runs list | tail -n +2 | tail -n 1 | awk '{print $1}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Found MLflow Run ID: $RUN_ID"
+        echo "Found MLflow Run ID: $RUN_ID" # Tambahkan untuk debugging
 
     - name: Upload to Google Drive
       run: |
