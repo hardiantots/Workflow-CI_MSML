@@ -62,12 +62,6 @@ jobs:
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Found MLflow Run ID: $RUN_ID"
 
-    - name: Upload MLflow Artifacts to Repository
-      uses: actions/upload-artifact@v2
-      with:
-        name: mlflow-artifacts-${{ github.run_id }}
-        path: mlruns/
-
     - name: Build Docker Model
       shell: bash -l {0}
       run: |
