@@ -63,7 +63,7 @@ jobs:
         echo "Found MLflow Run ID: $RUN_ID"
 
     - name: Upload MLflow Artifacts to Repository
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: mlflow-artifacts-${{ github.run_id }}
         path: mlruns/
