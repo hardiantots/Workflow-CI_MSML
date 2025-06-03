@@ -6,10 +6,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, required=True)
+parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
 args = parser.parse_args()
+data_path = args.data_path
 
-df = pd.read_csv(args.data_path)
+df = pd.read_csv(data_path)
 X = df.drop(columns=["Personal Loan"])
 y = df["Personal Loan"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
