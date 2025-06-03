@@ -1,13 +1,11 @@
 import argparse
 import pandas as pd
 import mlflow
-import os
+import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
-
-if "MLFLOW_TRACKING_URI" not in os.environ:
-    mlflow.set_tracking_uri("./mlruns")
+from mlflow.models import infer_signature
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
@@ -23,18 +21,25 @@ X_train, X_test, y_train, y_test = load_and_split_data(args.data_path, 'Personal
 
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
 
+y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 report = classification_report(y_test, y_pred)
 
-mlflow.sklearn.log_model(model, "model")
+input_example = X_test.iloc[[0]]
+signature = infer_signature(X_test, y_pred)
+
+mlflow.sklearn.log_model(
+    model,
+    artifact_path="model",
+    input_example=input_example,
+    signature=signature
+)
+
 mlflow.log_metric("accuracy", accuracy)
 mlflow.log_text(report, "classification_report.txt")
 
-
-run = mlflow.active_run()
-if run:
-    print(f"MLflow Run ID for this execution: {run.info.run_id}")
-    with open("run_id.txt", "w") as f:
-        f.write(run.info.run_id + "\n")
+run_id = mlflow.active_run().info.run_id
+print(f"MLflow Run ID for this execution: {run_id}")
+with open("run_id.txt", "w") as f:
+    f.write(run_id)
