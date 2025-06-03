@@ -27,7 +27,7 @@ jobs:
     - name: Run MLflow Project
       shell: bash -l {0}
       run: |
-        mlflow run . --env-manager local
+        mlflow run MLProject --env-manager local -P data_path=Bank_Personal_Loan_preprocessing.csv
 
     - name: Get Latest Run ID
       id: get_run
