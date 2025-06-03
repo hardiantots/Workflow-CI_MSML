@@ -57,7 +57,7 @@ jobs:
         mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }}
         echo "--------------------------------------"
 
-        RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} --no-header | tail -n 1 | awk '{print $NF}')
+        RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} | tail -n 1 | awk '{print $NF}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Found MLflow Run ID: $RUN_ID"
 
