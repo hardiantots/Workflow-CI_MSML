@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, classification_report
 if "MLFLOW_TRACKING_URI" not in os.environ:
     mlflow.set_tracking_uri("./mlruns")
 
-mlflow.set_experiment('Bank_Personal_Loan_Experiment')
+mlflow.set_experiment("Bank_Personal_Loan_Experiment")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
@@ -23,18 +23,20 @@ def load_and_split_data(data, target_column, test_size=0.2, random_state=None):
 
 X_train, X_test, y_train, y_test = load_and_split_data(args.data_path, 'Personal Loan')
 
-with mlflow.start_run():
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    report = classification_report(y_test, y_pred)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
 
-    mlflow.sklearn.log_model(model, "model")
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_text(report, "classification_report.txt")
+accuracy = accuracy_score(y_test, y_pred)
+report = classification_report(y_test, y_pred)
 
-    run_id = mlflow.active_run().info.run_id
-    print(f"MLflow Run ID for this execution: {run_id}")
+mlflow.sklearn.log_model(model, "model")
+mlflow.log_metric("accuracy", accuracy)
+mlflow.log_text(report, "classification_report.txt")
+
+
+run = mlflow.active_run()
+if run:
+    print(f"MLflow Run ID for this execution: {run.info.run_id}")
     with open("run_id.txt", "w") as f:
-        f.write(run_id)
+        f.write(run.info.run_id + "\n")
