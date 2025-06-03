@@ -9,8 +9,6 @@ from sklearn.metrics import accuracy_score, classification_report
 if "MLFLOW_TRACKING_URI" not in os.environ:
     mlflow.set_tracking_uri("./mlruns")
 
-mlflow.set_experiment("Bank_Personal_Loan_Experiment")
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
 args = parser.parse_args()
