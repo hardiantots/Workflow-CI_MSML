@@ -9,8 +9,8 @@ jobs:
   train-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+    # Removed MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+    # MLflow will now default to local file-based tracking in './mlruns'
 
     steps:
     - name: Checkout Repository
@@ -27,14 +27,18 @@ jobs:
     - name: Run MLflow Project
       shell: bash -l {0}
       run: |
+        # MLflow will log runs to './mlruns' by default
         mlflow run MLProject --env-manager local -P data_path=Bank_Personal_Loan_preprocessing.csv
 
     - name: Get Latest Run ID
       id: get_run
       shell: bash -l {0}
       run: |
-        RUN_ID=$(mlflow runs list --order-by start_time desc | awk 'NR==2 {print $1}')
+        # Ensure the 'mlruns' directory exists before listing runs
+        # This is implicitly handled by mlflow run creating it, but good practice.
+        RUN_ID=$(mlflow runs list --order-by start_time desc --max-results 1 --query "tags.mlflow.project.entryPoint = 'main'" | awk 'NR==2 {print $1}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+        echo "Found MLflow Run ID: $RUN_ID" # Add for debugging
 
     - name: Build Docker Image
       shell: bash -l {0}
