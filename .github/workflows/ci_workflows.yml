@@ -39,23 +39,6 @@ jobs:
       run: |
         mlflow run MLProject --env-manager local -P data_path=Bank_Personal_Loan_preprocessing.csv
 
-    - name: Get MLflow Experiment ID # New step to get the experiment ID
-      id: get_experiment_id
-      shell: bash -l {0}
-      run: |
-        EXPERIMENT_NAME="Bank_Personal_Loan_Experiment"
-        echo "--- Raw output of mlflow experiments ---"
-        mlflow experiments # Debugging: show raw output
-        echo "--------------------------------------"
-        # Get the experiment ID based on the name by parsing the output of 'mlflow experiments'
-        # This assumes the output format is a table and the ID is the first column
-        # and the name is in a later column.
-        EXPERIMENT_ID=$(mlflow experiments | grep "${EXPERIMENT_NAME}" | awk '{print $1}')
-        echo "MLFLOW_EXPERIMENT_ID=$EXPERIMENT_ID" >> $GITHUB_ENV
-        echo "Found MLflow Experiment ID for '$EXPERIMENT_NAME': $EXPERIMENT_ID"
-        # If the above command doesn't work, you might need to adjust the awk part
-        # based on the exact column number of the experiment name in 'mlflow experiments' output.
-
     - name: Get latest MLflow run_id # Updated name to match image
       id: get_run
       shell: bash -l {0}
