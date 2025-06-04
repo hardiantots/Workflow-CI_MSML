@@ -39,7 +39,7 @@ jobs:
     - name: Run mlflow project
       shell: bash -l {0}
       run: |
-        mlflow run MLProject --env-manager local -P data_path=Bank_Personal_Loan_preprocessing.csv
+        mlflow run MLProject -P data_path=Bank_Personal_Loan_preprocessing.csv
 
     - name: Extract MLflow run ID from file
       shell: bash -l {0}
@@ -88,13 +88,13 @@ jobs:
     - name: Build Docker Model
       shell: bash -l {0}
       run: |
-        mlflow models build-docker -m runs:/${{ env.RUN_ID }}/model -n mlflow_model
+        mlflow models build-docker -m runs:/${{ env.RUN_ID }}/model -n mlflows_model
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
     - name: Tag Docker Image
-      run: docker tag mlflow_model ${{ secrets.DOCKER_USERNAME }}/mlflow_model:latest
+      run: docker tag mlflows_model ${{ secrets.DOCKER_USERNAME }}/mlflows_model:latest
 
     - name: Push Docker Image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/mlflow_model:latest
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/mlflows_model:latest
