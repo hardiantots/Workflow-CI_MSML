@@ -5,17 +5,21 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  MLFLOW_EXPERIMENT_ID: 0
+  MODEL_NAME: mlflows_model
+
 jobs:
   train-and-deploy:
     runs-on: ubuntu-latest
-    permissions:   
+    permissions:
       contents: write
 
     steps:
-    - name: Run actions/checkout@v3
+    - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.12.7
+    - name: Set up Conda + Python 3.12
       uses: conda-incubator/setup-miniconda@v2
       with:
         auto-activate-base: false
@@ -23,45 +27,27 @@ jobs:
         environment-file: MLProject/conda.yaml
         python-version: 3.12
 
-    - name: Check Env
+    - name: Verify Environment
       shell: bash -l {0}
       run: |
-        echo "Current working directory: $(pwd)"
-        echo "Python version: $(python --version)"
-        echo "MLflow version: $(mlflow --version)"
-        echo "Conda environment: $CONDA_DEFAULT_ENV"
+        echo "Working dir: $(pwd)"
+        which python
+        python --version
+        mlflow --version
+        echo "Conda env: $CONDA_DEFAULT_ENV"
 
-    - name: Install dependencies
-      shell: bash -l {0}
-      run: |
-        echo "Conda environment activated: $CONDA_DEFAULT_ENV"
-
-    - name: Run mlflow project
+    - name: Run MLflow Project
       shell: bash -l {0}
       run: |
         mlflow run MLProject -P data_path=Bank_Personal_Loan/Bank_Personal_Loan_preprocessing.csv
 
-    - name: Extract MLflow run ID from file
-      shell: bash -l {0}
-      run: |
-        RUN_ID=$(cat MLProject/run_id.txt)
-        echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Found MLflow Run ID: $RUN_ID"
-
-    - name: Set MLflow Experiment ID
-      run: echo "MLFLOW_EXPERIMENT_ID=0" >> $GITHUB_ENV
-
-    - name: Get latest MLflow run_id
+    - name: Get latest MLflow Run ID
       id: get_run
       shell: bash -l {0}
       run: |
-        echo "--- Raw output of mlflow runs list for experiment ID ${{ env.MLFLOW_EXPERIMENT_ID }} ---"
-        mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }}
-        echo "--------------------------------------"
-
-        RUN_ID=$(mlflow runs list --experiment-id ${{ env.MLFLOW_EXPERIMENT_ID }} | tail -n 1 | awk '{print $NF}')
+        RUN_ID=$(mlflow runs list --experiment-id $MLFLOW_EXPERIMENT_ID | tail -n 1 | awk '{print $NF}')
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Found MLflow Run ID: $RUN_ID"
+        echo "MLflow Run ID: $RUN_ID"
 
     - name: Commit and Push MLflow Artifacts
       run: |
@@ -85,16 +71,20 @@ jobs:
           git push
         fi
 
-    - name: Build Docker Model
+    - name: Build Docker Image from MLflow Model
       shell: bash -l {0}
       run: |
-        mlflow models build-docker -m runs:/${{ env.RUN_ID }}/model -n mlflows_model
+        mlflow models build-docker -m runs:/${{ env.RUN_ID }}/model -n $MODEL_NAME
 
     - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Tag Docker Image
-      run: docker tag mlflows_model ${{ secrets.DOCKER_USERNAME }}/mlflows_model:latest
+      run: |
+        docker tag $MODEL_NAME ${{ secrets.DOCKER_USERNAME }}/$MODEL_NAME:latest
+        docker tag $MODEL_NAME ${{ secrets.DOCKER_USERNAME }}/$MODEL_NAME:${{ github.sha }}
 
     - name: Push Docker Image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/mlflows_model:latest
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/$MODEL_NAME:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/$MODEL_NAME:${{ github.sha }}
