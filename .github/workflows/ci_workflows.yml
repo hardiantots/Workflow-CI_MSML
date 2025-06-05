@@ -39,7 +39,7 @@ jobs:
     - name: Run mlflow project
       shell: bash -l {0}
       run: |
-        mlflow run MLProject -P data_path=Bank_Personal_Loan_preprocessing.csv
+        mlflow run MLProject -P data_path=Bank_Personal_Loan/Bank_Personal_Loan_preprocessing.csv
 
     - name: Extract MLflow run ID from file
       shell: bash -l {0}
