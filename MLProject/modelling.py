@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, classification_report, precision_sco
 from mlflow.models import infer_signature
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan_preprocessing.csv")
+parser.add_argument("--data_path", type=str, default="Bank_Personal_Loan/Bank_Personal_Loan_preprocessing.csv")
 args = parser.parse_args()
 
 def load_and_split_data(data, target_column, test_size=0.2, random_state=None):
